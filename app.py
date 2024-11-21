@@ -7,10 +7,18 @@ app = Flask(__name__)
 JSON_FILE = './vol/routes.json'
 PASSWORD_FILE = './vol/password.txt'
 
+# 비밀번호 파일이 없으면 생성합니다.
+DEFAULT_PASSWORD = "default_password"
+
+def ensure_password_file():
+    if not os.path.exists(PASSWORD_FILE):
+        print(f"Password file not found. Creating with default password: '{DEFAULT_PASSWORD}'")
+        with open(PASSWORD_FILE, 'w') as file:
+            file.write(DEFAULT_PASSWORD)
+
 # 비밀번호 파일에서 비밀번호 해시를 가져옵니다.
 def load_password_hash():
-    if not os.path.exists(PASSWORD_FILE):
-        raise FileNotFoundError(f"Password file '{PASSWORD_FILE}' not found.")
+    ensure_password_file()
     with open(PASSWORD_FILE, 'r') as file:
         password = file.read().strip()
     return hashlib.sha256(password.encode()).hexdigest()
