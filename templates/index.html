@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Manager</title>
+    <style>
+        .row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .input-box {
+            margin-right: 10px;
+        }
+        .input-box input {
+            width: 200px;
+            padding: 5px;
+        }
+        .input-box-url input {
+            width: 400px; /* URL 길이 조정 */
+            padding: 5px;
+        }
+        .input-box-description {
+            margin-left: 20px; /* 설명 박스와 URL 박스 사이 공백 추가 */
+        }
+        .input-box-description input {
+            width: 400px; /* 설명 길이 조정 */
+            padding: 5px;
+        }
+        #save-button, #add-row-button {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #add-row-button {
+            background-color: #007BFF;
+        }
+        #save-button:hover {
+            background-color: #45a049;
+        }
+        #add-row-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manage Routes</h1>
+    <button id="save-button">Save</button>
+    <button id="add-row-button">Add Route</button>
+    <form id="routes-form">
+        <div>
+            <input type="password" id="password" placeholder="Enter password" style="margin-bottom: 10px; padding: 5px; width: 200px;">
+        </div>
+        {% for route, details in routes.items() %}
+        <div class="row">
+            <div class="input-box">
+                <input type="text" name="route" value="{{ route }}" placeholder="Route">
+            </div>
+            <div class="input-box-url">
+                <input type="text" name="url" value="{{ details.url }}" placeholder="Destination URL">
+            </div>
+            <div class="input-box-description">
+                <input type="text" name="description" value="{{ details.description }}" placeholder="Description">
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+
+    <script>
+        document.getElementById('add-row-button').addEventListener('click', function () {
+            const form = document.getElementById('routes-form');
+
+            const row = document.createElement('div');
+            row.classList.add('row');
+
+            row.innerHTML = `
+                <div class="input-box">
+                    <input type="text" name="route" placeholder="Route">
+                </div>
+                <div class="input-box-url">
+                    <input type="text" name="url" placeholder="Destination URL">
+                </div>
+                <div class="input-box-description">
+                    <input type="text" name="description" placeholder="Description">
+                </div>
+            `;
+
+            form.appendChild(row);
+        });
+
+        document.getElementById('save-button').addEventListener('click', function () {
+            const password = document.getElementById('password').value.trim();
+            if (!password) {
+                alert('Please enter a password.');
+                return;
+            }
+
+            const rows = document.querySelectorAll('.row');
+            const data = { routes: {}, password: password };
+            const routesSet = new Set();
+            let hasDuplicate = false;
+
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const route = inputs[0].value.trim();
+                const url = inputs[1].value.trim();
+                const description = inputs[2].value.trim();
+
+                // Ignore empty route or url
+                if (route && url) {
+                    if (routesSet.has(route)) {
+                        hasDuplicate = true;
+                    } else {
+                        routesSet.add(route);
+                        data.routes[route] = { url, description };
+                    }
+                }
+            });
+
+            if (hasDuplicate) {
+                alert('Duplicate routes are not allowed. Please check your entries.');
+                return;
+            }
+
+            fetch('/update-routes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    alert(result.message || 'Routes updated successfully!');
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });    
+    </script>
+</body>
+</html>

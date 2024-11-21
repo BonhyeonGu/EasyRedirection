@@ -1,0 +1,13 @@
+services:
+  redirection:
+    container_name: 01Myweb_07_Redirection
+    volumes:
+      - /media/ext/docker/Redirection:/root/p/vol
+    build:
+      context: .
+      dockerfile: ./Dockerfile_07_Redirection
+    restart: always
+#    ports:
+#      - 2222:22
+    networks:
+      - network
