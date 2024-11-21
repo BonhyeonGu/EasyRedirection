@@ -7,6 +7,7 @@
     <style>
         .row {
             display: flex;
+            align-items: center;
             margin-bottom: 10px;
         }
         .input-box {
@@ -26,6 +27,17 @@
         .input-box-description input {
             width: 400px; /* 설명 길이 조정 */
             padding: 5px;
+        }
+        .delete-button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #FF6347;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #FF4500;
         }
         #save-button, #add-row-button {
             margin-bottom: 20px;
@@ -65,6 +77,7 @@
             <div class="input-box-description">
                 <input type="text" name="description" value="{{ details.description }}" placeholder="Description">
             </div>
+            <button type="button" class="delete-button">Delete</button>
         </div>
         {% endfor %}
     </form>
@@ -86,9 +99,22 @@
                 <div class="input-box-description">
                     <input type="text" name="description" placeholder="Description">
                 </div>
+                <button type="button" class="delete-button">Delete</button>
             `;
 
+            const deleteButton = row.querySelector('.delete-button');
+            deleteButton.addEventListener('click', function () {
+                row.remove();
+            });
+
             form.appendChild(row);
+        });
+
+        // Attach
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', function () {
+                button.parentElement.remove();
+            });
         });
 
         document.getElementById('save-button').addEventListener('click', function () {
@@ -109,7 +135,7 @@
                 const url = inputs[1].value.trim();
                 const description = inputs[2].value.trim();
 
-                // Ignore empty route or url
+                // Ignore
                 if (route && url) {
                     if (routesSet.has(route)) {
                         hasDuplicate = true;
