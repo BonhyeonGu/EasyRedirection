@@ -9,6 +9,14 @@
             display: flex;
             align-items: center;
             margin-bottom: 10px;
+            cursor: move; /* 드래그 가능한 행 */
+            background-color: #f9f9f9;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .row.dragging {
+            opacity: 0.5;
         }
         .input-box {
             margin-right: 10px;
@@ -67,7 +75,7 @@
             <input type="password" id="password" placeholder="Enter password" style="margin-bottom: 10px; padding: 5px; width: 200px;">
         </div>
         {% for route, details in routes.items() %}
-        <div class="row">
+        <div class="row" draggable="true">
             <div class="input-box">
                 <input type="text" name="route" value="{{ route }}" placeholder="Route">
             </div>
@@ -88,6 +96,7 @@
 
             const row = document.createElement('div');
             row.classList.add('row');
+            row.setAttribute('draggable', 'true');
 
             row.innerHTML = `
                 <div class="input-box">
@@ -107,14 +116,50 @@
                 row.remove();
             });
 
+            addDragEvents(row); // Add drag and drop events
+
             form.appendChild(row);
         });
 
-        // Attach
+        // Del
         document.querySelectorAll('.delete-button').forEach(button => {
             button.addEventListener('click', function () {
                 button.parentElement.remove();
             });
+        });
+
+        // Drag!!!!!!
+        const rows = document.getElementById('routes-form');
+        let draggedRow = null;
+
+        function addDragEvents(row) {
+            row.addEventListener('dragstart', function (e) {
+                draggedRow = this;
+                this.classList.add('dragging');
+            });
+
+            row.addEventListener('dragend', function (e) {
+                draggedRow = null;
+                this.classList.remove('dragging');
+            });
+
+            row.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                const draggingOverRow = e.target.closest('.row');
+                if (draggingOverRow && draggingOverRow !== draggedRow) {
+                    const rect = draggingOverRow.getBoundingClientRect();
+                    const offset = e.clientY - rect.top;
+                    if (offset > rect.height / 2) {
+                        rows.insertBefore(draggingOverRow.nextSibling, draggedRow);
+                    } else {
+                        rows.insertBefore(draggingOverRow, draggedRow);
+                    }
+                }
+            });
+        }
+
+        document.querySelectorAll('.row').forEach(row => {
+            addDragEvents(row);
         });
 
         document.getElementById('save-button').addEventListener('click', function () {
@@ -135,7 +180,7 @@
                 const url = inputs[1].value.trim();
                 const description = inputs[2].value.trim();
 
-                // Ignore
+                // Ignore empty route or url
                 if (route && url) {
                     if (routesSet.has(route)) {
                         hasDuplicate = true;
